@@ -17,12 +17,11 @@ async function bootstrap() {
   while (true) {
     await parsePosition(appContext, consoleService);
     const result = await parseInstruction(appContext, consoleService);
+    let color = green;
     if (result.includes('LOST')) {
-      console.log(red, result);
-      await start(appContext, consoleService);
-    } else {
-      console.log(green, `Result: ${result}`);
+      color = red;
     }
+    console.log(color, `Result: ${result}`);
   }
 }
 

@@ -44,7 +44,7 @@ export async function parseInstruction(
 ) {
   const defaultInstruction = 'RFRFRFRF';
   const instructionMessage =
-    message ?? `Enter movement instructions (${defaultInstruction})`;
+    message ?? `Enter movement instructions (${defaultInstruction}):`;
   const instructionAnswer = await input({ message: instructionMessage });
   await ifToExit(appContext, instructionAnswer);
   const result = consoleService.processInstructions(

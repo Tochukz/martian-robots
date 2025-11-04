@@ -3,7 +3,7 @@ import { Position, Coordinates, Direction } from './interfaces/position';
 
 @Injectable()
 export class ConsoleService {
-  coordinates: Coordinates = {
+  bounds: Coordinates = {
     x: 50,
     y: 50,
   };
@@ -14,14 +14,14 @@ export class ConsoleService {
     direction: 'N',
   };
 
+  forbiddenCoordinates: Coordinates[] = [];
+
   directions = ['N', 'E', 'S', 'W'];
 
   parseCoordinates(strCoordinates: string[]) {
     const x = parseInt(strCoordinates[0]);
     const y = parseInt(strCoordinates[1]);
-    if (isNaN(x) || x > 50) {
-      return false;
-    } else if (isNaN(y) || y > 50) {
+    if (isNaN(x) || x > 50 || isNaN(y) || y > 50) {
       return false;
     }
 
@@ -38,14 +38,12 @@ export class ConsoleService {
     if (!coordinates) {
       return false;
     }
-    this.coordinates = coordinates;
-    console.log(coordinates);
+    this.bounds = coordinates;
     return true;
   }
 
   processPosition(input: string) {
     const position = input.split(' ');
-    console.log('position', position);
     if (position.length != 3) {
       return false;
     }
@@ -62,19 +60,17 @@ export class ConsoleService {
   }
 
   processInstructions(input: string) {
-    const instructions = input.split('');
+    const commands = input.split('');
     const possibleInstructions = ['L', 'R', 'F'];
-    const isInvalid = instructions.some(
-      (x) => !possibleInstructions.includes(x),
-    );
+    const isInvalid = commands.some((x) => !possibleInstructions.includes(x));
     if (isInvalid) {
       return false;
     }
     const directions = this.directions;
-    for (const instruction of instructions) {
+    for (const command of commands) {
       const currectDirection = this.position.direction;
       const index = directions.findIndex((x) => x == currectDirection);
-      switch (instruction) {
+      switch (command) {
         case 'L': {
           const direction = directions.at(index - 1);
           this.position.direction = direction as Direction;
@@ -86,12 +82,15 @@ export class ConsoleService {
           this.position.direction = direction as Direction;
           break;
         }
-        case 'F':
+        case 'F': {
+          const previousPosition = { ...this.position };
+          this.move();
           if (this.isLost()) {
+            this.position = { ...previousPosition };
             return this.getPositionString('LOST');
           }
-          this.move(currectDirection);
           break;
+        }
       }
     }
 
@@ -100,10 +99,9 @@ export class ConsoleService {
 
   isLost() {
     const { x, y } = this.position;
-    const { x: xMax, y: yMax } = this.coordinates;
+    const { x: xMax, y: yMax } = this.bounds;
     if (x < 0 || x > xMax || y < 0 || y > yMax) {
-      console.log({ x, y, xMax, yMax });
-
+      this.forbiddenCoordinates.push({ x, y });
       return true;
     }
     return false;
@@ -118,20 +116,29 @@ export class ConsoleService {
     return positionStr;
   }
 
-  move(direction: Direction) {
+  move() {
+    let { x, y } = this.position;
+    const direction = this.position.direction;
     switch (direction) {
       case 'N':
-        this.position.y += 1;
+        y += 1;
         break;
       case 'S':
-        this.position.y -= 1;
+        y -= 1;
         break;
       case 'E':
-        this.position.x += 1;
+        x += 1;
         break;
       case 'W':
-        this.position.x -= 1;
+        x -= 1;
         break;
+    }
+
+    const isForbidden = this.forbiddenCoordinates.find(
+      (cord) => cord.x == x && cord.y == y,
+    );
+    if (!isForbidden) {
+      this.position = { x, y, direction };
     }
   }
 }

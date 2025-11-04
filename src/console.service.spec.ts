@@ -44,17 +44,17 @@ describe('S3Service', () => {
       const y = 50;
       const result = service.setBounds(`${x} ${y}`);
       expect(result).toBe(true);
-      expect(service.coordinates).toEqual({ x, y });
+      expect(service.bounds).toEqual({ x, y });
     });
     it('should return false for invalid input - less than 2 integer', () => {
       const result = service.setBounds('40');
       expect(result).toBe(false);
-      expect(service.coordinates).toEqual({ x: 50, y: 50 });
+      expect(service.bounds).toEqual({ x: 50, y: 50 });
     });
     it('should return false for invalid input -  more than 2 integers', () => {
       const result = service.setBounds('40 50 81');
       expect(result).toBe(false);
-      expect(service.coordinates).toEqual({ x: 50, y: 50 });
+      expect(service.bounds).toEqual({ x: 50, y: 50 });
     });
   });
 
@@ -70,16 +70,16 @@ describe('S3Service', () => {
       expect(service.position.direction).toBe(direction);
     });
 
-    it('should return false for invalid input - invalid number', () => {
-      const result = service.parseCoordinates(['30', 'X']);
+    it('should return false for invalid input - invalid cardinal direction', () => {
+      const result = service.processPosition('30 40 X');
       expect(result).toBe(false);
       expect(service.position.x).toBe(0);
       expect(service.position.y).toBe(0);
       expect(service.position.direction).toBe('N');
     });
 
-    it('should return false for invalid input - above maximum coordinate', () => {
-      const result = service.parseCoordinates(['30', '55']);
+    it('should return false for invalid input - y coordinate greather than 50', () => {
+      const result = service.processPosition('30 55 E');
       expect(result).toBe(false);
       expect(service.position.x).toBe(0);
       expect(service.position.y).toBe(0);
@@ -104,14 +104,60 @@ describe('S3Service', () => {
     });
     it('Move robot to the middle of space and pointing south starting from (13, 15 W)', () => {
       service.processPosition('13, 15 W');
-      const result = service.processInstructions('RFFFFFFFFFFRFFFFFFFFFFFFRR');
+      const result = service.processInstructions('RFFFFFFFFFFRFFFFFFFFFFFFR');
       expect(result).toBe('25 25 S');
     });
-    it('Move robot off the bottom right edge starting at position (12, 12 N)', () => {
-      service.parseCoordinates(['15', '15']);
-      service.processPosition('12 12 N');
-      const result = service.processInstructions('RRFFF');
-      expect(result).toBe('15 15 S LOST');
+    it('Move Robot off bottom left edge start at default position 0 0 N', () => {
+      const result = service.processInstructions('LF');
+      expect(result).toBe('0 0 W LOST');
+    });
+    it('Move Robot off the bottom right edge starting at position (7, 7 N)', () => {
+      service.setBounds('15 15');
+      service.processPosition('7 7 N');
+      const result = service.processInstructions('RFFFFFFFFFR');
+      expect(result).toBe('15 7 E LOST');
+    });
+    it('Move Robot off the top right edge starting at position (5, 10 E)', () => {
+      service.setBounds('15 15');
+      service.processPosition('5 10 E');
+      const result = service.processInstructions('LFFFFFF');
+      expect(result).toBe('5 15 N LOST');
+    });
+  });
+
+  describe('getPositionString', () => {
+    it('should return default position as string', () => {
+      const result = service.getPositionString();
+      expect(result).toBe('0 0 N');
+    });
+    it('should return current position as string', () => {
+      service.processPosition('15 20 E');
+      const result = service.getPositionString();
+      expect(result).toBe('15 20 E');
+    });
+  });
+
+  describe('move', () => {
+    it('should push robot y cordinate by 1', () => {
+      service.move();
+      expect(service.position.y).toBe(1);
+    });
+    it('should push robot x cordinate by 3', () => {
+      service.processPosition('12 0 E');
+      service.move();
+      service.move();
+      service.move();
+      expect(service.position.x).toBe(15);
+    });
+    it('should ignore move to forbidden coordinates -1 0', () => {
+      service.processInstructions('LF');
+      service.processPosition('0 0 W');
+      service.move();
+      service.move();
+      service.move();
+      expect(service.position.x).toBe(0);
+      expect(service.position.y).toBe(0);
+      expect(service.position.direction).toBe('W');
     });
   });
 });
