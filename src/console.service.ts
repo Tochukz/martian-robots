@@ -4,8 +4,8 @@ import { Position, Coordinates, Direction } from './interfaces/position';
 @Injectable()
 export class ConsoleService {
   coordinates: Coordinates = {
-    x: 0,
-    y: 0,
+    x: 50,
+    y: 50,
   };
 
   position: Position = {
@@ -87,6 +87,9 @@ export class ConsoleService {
           break;
         }
         case 'F':
+          if (this.isLost()) {
+            return this.getPositionString('LOST');
+          }
           this.move(currectDirection);
           break;
       }
@@ -95,12 +98,22 @@ export class ConsoleService {
     return this.getPositionString();
   }
 
-  getPositionString() {
-    const { x, y, direction } = this.position;
+  isLost() {
+    const { x, y } = this.position;
     const { x: xMax, y: yMax } = this.coordinates;
-    const positionStr = `${x} ${y} ${direction}`;
     if (x < 0 || x > xMax || y < 0 || y > yMax) {
-      return `${positionStr} LOST`;
+      console.log({ x, y, xMax, yMax });
+
+      return true;
+    }
+    return false;
+  }
+
+  getPositionString(append: string = '') {
+    const { x, y, direction } = this.position;
+    const positionStr = `${x} ${y} ${direction}`;
+    if (append) {
+      return `${positionStr} ${append}`;
     }
     return positionStr;
   }
