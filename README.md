@@ -41,7 +41,7 @@ Enter a position for your robot (1 1 E): >  1 1 E
 Enter movement instructions (RFRFRFRF): > RFRFRFRF
 ```
 
-Note that the prompts are followed by reasonable default inputs.
+Note that the prompts are followed by reasonable default input which you can accept by pressing enter.
 
 The resulting position of the Robot will be displayed after every instruction input is entered.
 
@@ -57,4 +57,4 @@ Result: 1 1 E
 
 ### More info
 
-The CLI application is programed to validate CLI inputs, if input are invalid the user is prompted again the enter the correct input.
+The CLI application is programed to validate CLI inputs, if input are invalid the user is prompted again to enter the correct input.
