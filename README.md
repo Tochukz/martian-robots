@@ -15,7 +15,7 @@ $ npm install
 Run unit test
 
 ```bash
-$ yarn test
+$ npm run test
 ```
 
 ### Operation
@@ -29,7 +29,7 @@ $ npx ts-node src/console.ts
 2. To run a production build, build before running the applicaiton
 
 ```bash
-$ yarn build
+$ npm run build
 $ node dist/console.js
 ```
 
